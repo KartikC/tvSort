@@ -70,7 +70,7 @@ def getEpisodes():
     global LIST_OF_EPISODES
     for filename in os.listdir(DOWNLOAD_PATH):
         for ext in LIST_OF_EXTS:
-            if ext in filename[len(filename)-4:]:
+            if ext == os.path.splitext(filename)[1][1:]:
                 for key in LIST_OF_SHOWS:
                     temp = ''.join(e for e in filename if e.isalnum())
                     if key in temp.lower():
@@ -139,8 +139,8 @@ class ProgressBar:
         percentString = str(percentDone) + "%"
 
         # slice the percentage into the bar
-        self.progBar = (self.progBar[0:percentPlace] + percentString
-                        + self.progBar[percentPlace+len(percentString):])
+        self.progBar = (self.progBar[0:int(percentPlace)] + percentString
+                        + self.progBar[int(percentPlace)+len(percentString):])
 
     def __str__(self):
         return str(self.progBar)

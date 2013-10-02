@@ -1,4 +1,8 @@
-# tvSort v2.0
+# tvSort v2.1
+
+Version 2.1 Changelog
+---
+* ext check now checks for last ext (fixes issues with multiple ext's)
 
 Version 2.0 Changelog
 ---
