@@ -12,7 +12,6 @@ import sys
 
 TOP_PATH = ""
 DOWNLOAD_PATH = ""
-WRITE_SPEED = 0
 LIST_OF_EXTS = []
 LIST_OF_SHOWS = {}
 LIST_OF_EPISODES = []
@@ -42,7 +41,6 @@ def getPaths():
     global TOP_PATH
     global DOWNLOAD_PATH
     global LIST_OF_EXTS
-    global WRITE_SPEED
     file = open( "config.cfg" )
     for i, line in enumerate(file):
         if i == 1:
@@ -145,7 +143,7 @@ class ProgressBar:
     def __str__(self):
         return str(self.progBar)
 
-def copy_with_prog(src_file, dest_file, overwrite = False, block_size = 16384):
+def copy_with_prog(src_file, dest_file, overwrite = False, block_size = 1048576):
     if not overwrite:
         if os.path.isfile(dest_file):
             raise IOError("File exists, not overwriting")

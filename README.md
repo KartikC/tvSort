@@ -1,4 +1,8 @@
-# tvSort v2.1
+# tvSort v2.2
+
+Version 2.2 Changelog
+---
+* block size updated for better transfer speeds
 
 Version 2.1 Changelog
 ---
