@@ -1,4 +1,8 @@
-# tvSort v2.2
+# tvSort v2.3
+
+Version 2.3 Changelog
+---
+* waits for SMB Shares (Windows Network Shares) to become available
 
 Version 2.2 Changelog
 ---
@@ -52,3 +56,6 @@ your downloaded shows, this folder can be unorganized.
   
 the third line should contain all the file exts of shows you download. the ones  
 already there should be fine for most.  
+
+the fourth line is optional and should contain the hostname or IP address of the
+computer on the network that is hosting the share

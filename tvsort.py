@@ -3,15 +3,17 @@ file: tvSort.py
 language: python3
 authors: Kartik Sathappan
 description: sort tv shows
-version: 2.0
+version: 2.3
 """
 import os
 import shutil
-import time
 import sys
+import socket
+from time import sleep
 
 TOP_PATH = ""
 DOWNLOAD_PATH = ""
+SMB = ""
 LIST_OF_EXTS = []
 LIST_OF_SHOWS = {}
 LIST_OF_EPISODES = []
@@ -41,6 +43,7 @@ def getPaths():
     global TOP_PATH
     global DOWNLOAD_PATH
     global LIST_OF_EXTS
+    global SMB
     file = open( "config.cfg" )
     for i, line in enumerate(file):
         if i == 1:
@@ -49,11 +52,42 @@ def getPaths():
             DOWNLOAD_PATH = line.strip().lower()
         elif i == 5:
             LIST_OF_EXTS = line.strip().split()
-        elif i > 5:
+        elif i == 7:
+            SMB = line.strip().split()
+        elif i > 7:
             break
     file.close()
-    #word = word.strip(",.\"\';:-!?").lower()
+    
+def DoesServiceExist(host, port):
+    host_addr = ""
 
+    try:
+        host_addr = socket.gethostbyname(host)
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.settimeout(1)
+        s.connect((host, port))
+        s.close()
+    except:
+        return False
+
+    return True
+
+def pollSMB():
+    print("Looking for SMB Server", end="")
+    global SMB
+    running = True
+    i = 0
+    while running:
+        running = not DoesServiceExist("AUDO-PC",445)
+        sleep(3)
+        print(".", end="")
+        i += 1
+        if i > 5:
+            running = False
+            raise IOError("SMB server could not be found.")
+    print("")
+    print("SMB server found.")
+    
 def getShows():
     global LIST_OF_SHOWS
     for filename in os.listdir(TOP_PATH):
@@ -101,7 +135,7 @@ def move(src, dst):
         print(dst + ' already exists!')
     else:
         copy_with_prog(src, dst)
-	
+    
 class ProgressBar:
     # From http://code.activestate.com/recipes/168639/
     def __init__(self, minValue = 0, maxValue = 10, totalWidth=12):
@@ -202,7 +236,9 @@ def main():
     print(TOP_PATH)
     print(DOWNLOAD_PATH)
     print(LIST_OF_EXTS)
-    print("\n")
+    print(SMB)
+    if SMB:
+        pollSMB()
     getShows()
     getEpisodes()
     moveFiles()
