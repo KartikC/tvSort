@@ -13,7 +13,7 @@ import time
 from time import sleep
 
 TOP_PATH = ""
-DOWNLOAD_PATH = ""
+DOWNLOAD_PATHS = []
 SMB = ""
 LIST_OF_EXTS = []
 LIST_OF_SHOWS = {}
@@ -24,7 +24,7 @@ class Episode(object):
      An Episode with a tag, and filename, and destination
     """
     __slots__ = ('tag', 'source', 'filename', 'destination')
-    
+
     def __init__(self, tag, source, filename, destination):
         """
         __init__: Episode * String * String * String * String -> Episode
@@ -33,7 +33,7 @@ class Episode(object):
         self.source = source
         self.filename = filename
         self.destination = destination
-        
+
     def __str__(self):
         """
         __str__ : Episode -> String
@@ -42,7 +42,7 @@ class Episode(object):
 
 def getPaths():
     global TOP_PATH
-    global DOWNLOAD_PATH
+    global DOWNLOAD_PATHS
     global LIST_OF_EXTS
     global SMB
     file = open( "config.cfg" )
@@ -50,7 +50,7 @@ def getPaths():
         if i == 1:
             TOP_PATH = line.strip().lower()
         elif i == 3:
-            DOWNLOAD_PATH = line.strip().lower()
+            DOWNLOAD_PATHS = line.strip().lower().split(',')
         elif i == 5:
             LIST_OF_EXTS = line.strip().split()
         elif i == 7:
@@ -58,7 +58,7 @@ def getPaths():
         elif i > 7:
             break
     file.close()
-    
+
 def DoesServiceExist(host, port):
     host_addr = ""
 
@@ -88,7 +88,7 @@ def pollSMB():
             raise IOError("SMB server could not be found.")
     print("")
     print("SMB server found.")
-    
+
 def getShows():
     global LIST_OF_SHOWS
     for filename in os.listdir(TOP_PATH):
@@ -101,14 +101,15 @@ def getShows():
 
 def getEpisodes():
     global LIST_OF_EPISODES
-    for filename in os.listdir(DOWNLOAD_PATH):
-        for ext in LIST_OF_EXTS:
-            if ext == os.path.splitext(filename)[1][1:]:
-                for key in LIST_OF_SHOWS:
-                    temp = ''.join(e for e in filename if e.isalnum())
-                    if key in temp.lower():
-                        temp = Episode( key, DOWNLOAD_PATH + filename, filename, LIST_OF_SHOWS[key] + filename )
-                        LIST_OF_EPISODES.append( temp )
+    for DOWNLOAD_PATH in DOWNLOAD_PATHS:
+        for filename in os.listdir(DOWNLOAD_PATH):
+            for ext in LIST_OF_EXTS:
+                if ext == os.path.splitext(filename)[1][1:]:
+                    for key in LIST_OF_SHOWS:
+                        temp = ''.join(e for e in filename if e.isalnum())
+                        if key in temp.lower():
+                            temp = Episode( key, DOWNLOAD_PATH + filename, filename, LIST_OF_SHOWS[key] + filename )
+                            LIST_OF_EPISODES.append( temp )
 
 def timeit(method):
 
@@ -129,14 +130,14 @@ def moveFiles():
             move(episode.source, episode.destination)
             print("done!")
             print("\n")
-            
+
 @timeit
 def move(src, dst):
     if os.path.isfile(dst):
         print(dst + ' already exists!')
     else:
         copy_with_prog(src, dst)
-    
+
 class ProgressBar:
     # From http://code.activestate.com/recipes/168639/
     def __init__(self, minValue = 0, maxValue = 10, totalWidth=12):
@@ -145,7 +146,7 @@ class ProgressBar:
         self.max = maxValue
         self.span = maxValue - minValue
         self.width = totalWidth
-        self.amount = 0       # When amount == max, we are 100% done 
+        self.amount = 0       # When amount == max, we are 100% done
         self.updateAmount(0)  # Build progress bar string
 
     def updateAmount(self, newAmount = 0):
@@ -168,7 +169,7 @@ class ProgressBar:
         self.progBar = "[" + '#'*numHashes + ' '*(allFull-numHashes) + "]"
 
         # figure out where to put the percentage, roughly centered
-        percentPlace = (len(self.progBar) / 2) - len(str(percentDone)) 
+        percentPlace = (len(self.progBar) / 2) - len(str(percentDone))
         percentString = str(percentDone) + "%"
 
         # slice the percentage into the bar
@@ -182,29 +183,29 @@ def copy_with_prog(src_file, dest_file, overwrite = False, block_size = 1048576)
     if not overwrite:
         if os.path.isfile(dest_file):
             raise IOError("File exists, not overwriting")
-    
+
     # Open src and dest files, get src file size
     src = open(src_file, "rb")
     dest = open(dest_file, "wb")
 
     src_size = os.stat(src_file).st_size
-    
+
     # Set progress bar
     prgb = ProgressBar(totalWidth = 79, maxValue = src_size)
-    
+
     # Start copying file
     cur_block_pos = 0 # a running total of current position
     while True:
         cur_block = src.read(block_size)
-        
+
         # Update progress bar
         prgb.updateAmount(cur_block_pos)
         cur_block_pos += block_size
-        
+
         sys.stdout.write(
             '\r%s\r' % str(prgb)
         )
-        
+
         # If it's the end of file
         if not cur_block:
             # ..write new line to prevent messing up terminal
@@ -230,12 +231,12 @@ def copy_with_prog(src_file, dest_file, overwrite = False, block_size = 1048576)
     else:
         os.remove(src_file)
 
-    
+
 
 def main():
     getPaths()
     print(TOP_PATH)
-    print(DOWNLOAD_PATH)
+    print(DOWNLOAD_PATHS)
     print(LIST_OF_EXTS)
     print(SMB)
     if SMB:
